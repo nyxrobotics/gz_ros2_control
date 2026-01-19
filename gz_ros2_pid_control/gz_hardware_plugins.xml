@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<library path="gz_ros2_pid_control">
+  <class
+    name="gz_ros2_pid_control/GazeboSimPIDSystem"
+    type="gz_ros2_pid_control::GazeboSimPIDSystem"
+    base_class_type="gz_ros2_control::GazeboSimSystemInterface">
+    <description>
+      Gazebo ros2_control PID position->effort hardware plugin
+    </description>
+  </class>
+</library>

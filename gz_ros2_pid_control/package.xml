@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>gz_ros2_pid_control</name>
+  <version>0.2.0</version>
+  <description>Gazebo ros2_control PID position controller hardware plugin</description>
+
+  <maintainer email="user@example.com">user</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>pluginlib</depend>
+  <depend>hardware_interface</depend>
+  <depend>gz_ros2_control</depend>
+
+  <!-- One of these Gazebo stacks will be present depending on the environment -->
+  <exec_depend>ignition-gazebo6</exec_depend>
+  <exec_depend>ignition-plugin1</exec_depend>
+  <exec_depend>gz-sim8</exec_depend>
+  <exec_depend>gz-plugin2</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <pluginlib plugin_manifest="gz_hardware_plugins.xml"/>
+  </export>
+</package>
