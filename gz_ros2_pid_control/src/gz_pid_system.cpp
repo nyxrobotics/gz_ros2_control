@@ -248,6 +248,10 @@ public:
   ///  - false : Mode 2, use viscous_coeff_ internally to compute
   ///  speed-dependent torque limits
   std::vector<bool> use_joint_damping_;
+
+  /// \brief If true, overwrite SDF max velocity limit with a very large value
+  /// (release speed limit).
+  std::vector<bool> release_speed_limit_;
 };
 
 namespace gz_ros2_pid_control {
@@ -279,6 +283,7 @@ bool GazeboSimPIDSystem::initSim(
   this->dataPtr->no_load_speed_.assign(this->dataPtr->n_dof_, 0.0);
   this->dataPtr->viscous_coeff_.assign(this->dataPtr->n_dof_, 0.0);
   this->dataPtr->use_joint_damping_.assign(this->dataPtr->n_dof_, false);
+  this->dataPtr->release_speed_limit_.assign(this->dataPtr->n_dof_, false);
 
   if (this->dataPtr->n_dof_ == 0) {
     RCLCPP_ERROR_STREAM(this->nh_->get_logger(), "There is no joint available");
@@ -340,6 +345,8 @@ bool GazeboSimPIDSystem::initSim(
     this->dataPtr->kd_[j] = get_double_param("kd", 0.0);
     this->dataPtr->use_joint_damping_[j] =
         get_bool_param("use_joint_damping", false);
+    this->dataPtr->release_speed_limit_[j] =
+        get_bool_param("release_speed_limit", false);
 
     // Interpret xacro/URDF limits:
     //  - limit effort   -> stall torque [N*m]
@@ -357,6 +364,21 @@ bool GazeboSimPIDSystem::initSim(
                                            ? (this->dataPtr->stall_torque_[j] /
                                               this->dataPtr->no_load_speed_[j])
                                            : 0.0;
+
+    // Optionally release the SDF max velocity limit so the observed speed limit
+    // comes from damping / back-EMF model instead of an explicit velocity
+    // clamp.
+    if (this->dataPtr->release_speed_limit_[j]) {
+      auto axis_comp =
+          this->dataPtr->ecm->Component<sim::components::JointAxis>(simjoint);
+      if (axis_comp) {
+        auto axis = axis_comp->Data();
+        // Use a very large value instead of infinity for robustness.
+        axis.SetMaxVelocity(1e9);
+        this->dataPtr->ecm->SetComponentData<sim::components::JointAxis>(
+            simjoint, axis);
+      }
+    }
 
     // Mode 1: overwrite Gazebo damping using viscous coefficient
     if (this->dataPtr->use_joint_damping_[j]) {
